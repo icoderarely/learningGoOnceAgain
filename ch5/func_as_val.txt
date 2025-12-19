@@ -1,0 +1,79 @@
+package main
+
+// The simple calculator program doesn’t handle one error case: division by zero. Change the function signature for the math operations to return both an int and an error. In the div function, if the divisor is 0, return errors.New("division by zero") for the error. In all other cases, return nil. Adjust the main function to check for this error.
+
+import (
+	"errors"
+	"fmt"
+	"strconv"
+)
+
+// function type declaration, so from now we dont have to write `func(int, int) int` again and again
+type opFuncType func(int, int) (int, error)
+
+// program for simple add/sub using func as values
+func add(a, b int) (int, error) { return a + b, nil }
+func sub(a, b int) (int, error) { return a - b, nil }
+func mul(a, b int) (int, error) { return a * b, nil }
+func div(a, b int) (int, error) {
+	if b == 0 {
+		return 0, errors.New("division by zero")
+	}
+	return a / b, nil
+}
+
+// var funMap = map[string]func(int, int) int{
+var funMap = map[string]opFuncType{
+	"+": add,
+	"-": sub,
+	"*": mul,
+	"/": div,
+}
+
+// func main() {
+	expressions := [][]string{
+		{"2", "+", "3"},
+		{"2", "-", "3"},
+		{"2", "*", "3"},
+		{"2", "/", "3"},
+		{"2", "/", "0"},
+		{"two", "+", "three"}, // invalid numbers
+		{"5"},                 // invalid format
+	}
+	for _, exp := range expressions {
+		evaluate(exp)
+	}
+}
+
+func evaluate(exp []string) {
+	if len(exp) != 3 {
+		fmt.Println("Invalid expression:", exp)
+		return
+	}
+
+	left, err := strconv.Atoi(exp[0])
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	op := exp[1]
+	opFunc, ok := funMap[op]
+	if !ok {
+		fmt.Println("Invalid operator", op)
+		return
+	}
+
+	right, err := strconv.Atoi(exp[2])
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	result, err := opFunc(left, right)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(exp, result)
+}
